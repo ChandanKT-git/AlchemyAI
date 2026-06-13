@@ -1,0 +1,90 @@
+/* ─────────────────────────────────────────────────
+   Agent Console — Global Styles
+   Design tokens + base reset + layout utilities
+   ───────────────────────────────────────────────── */
+
+:root {
+  /* Colors */
+  --color-bg: #0a0a0a;
+  --color-bg-panel: #111111;
+  --color-bg-elevated: #1a1a1a;
+  --color-bg-hover: #222222;
+  --color-border: #2a2a2a;
+  --color-border-focus: #444444;
+  --color-text: #e5e5e5;
+  --color-text-muted: #888888;
+  --color-text-dim: #555555;
+
+  /* Accent colors (for timeline event types) */
+  --color-accent-blue: #3b82f6;
+  --color-accent-orange: #f59e0b;
+  --color-accent-green: #22c55e;
+  --color-accent-purple: #a855f7;
+  --color-accent-red: #ef4444;
+  --color-accent-gray: #6b7280;
+
+  /* Connection status colors */
+  --color-status-connected: #22c55e;
+  --color-status-connecting: #f59e0b;
+  --color-status-disconnected: #ef4444;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), "Fira Code", "Consolas", monospace;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ── Reset ──────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* App manages its own scrolling */
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar styling ─────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-focus);
+}

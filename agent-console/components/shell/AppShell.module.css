@@ -1,0 +1,170 @@
+/* ─────────────────────────────────────────────────
+   AppShell layout — CSS Module
+   
+   Why CSS Modules?
+   - Scoped class names (no global collisions)
+   - Zero-config with Next.js (no Tailwind dependency)
+   ───────────────────────────────────────────────── */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-panel);
+  min-height: 48px;
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-status-disconnected);
+}
+
+.statusText {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.toggleBtn {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggleBtn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.toggleBtn.active {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  border-color: var(--color-border-focus);
+}
+
+/* ── Main 3-panel layout ───────────────────────── */
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Side panels ───────────────────────────────── */
+
+.timeline,
+.context {
+  width: 300px;
+  min-width: 240px;
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-bg-panel);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.context {
+  border-right: none;
+  border-left: 1px solid var(--color-border);
+}
+
+.panelHeader {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.panelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+}
+
+/* ── Chat panel (center, fills remaining space) ── */
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* prevent flex overflow */
+}
+
+.inputArea {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--color-border-focus);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Placeholder text ──────────────────────────── */
+
+.placeholder {
+  color: var(--color-text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding-top: var(--space-xl);
+}
