@@ -1,0 +1,113 @@
+/* StreamMessage styles */
+
+.message {
+  padding: var(--space-md) 0;
+}
+
+/* ── Text blocks ──────────────────────────────── */
+
+.textBlock {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin-bottom: var(--space-sm);
+}
+
+/* Blinking cursor while streaming */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: var(--color-accent-blue);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Tool call cards ──────────────────────────── */
+
+.toolCard {
+  margin: var(--space-md) 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  font-size: 13px;
+  transition: border-color 0.3s ease;
+}
+
+.toolCard.pending {
+  border-color: var(--color-status-connecting);
+  background-color: hsl(45 100% 50% / 0.03);
+}
+
+.toolCard.complete {
+  border-color: var(--color-status-connected);
+  background-color: hsl(142 70% 45% / 0.03);
+}
+
+.toolHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.toolIcon {
+  font-size: 14px;
+}
+
+.toolName {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-accent-purple);
+}
+
+.toolStatus {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toolSection {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.toolSection:last-child {
+  border-bottom: none;
+}
+
+.toolLabel {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  margin-bottom: var(--space-xs);
+}
+
+.toolCode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg);
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
