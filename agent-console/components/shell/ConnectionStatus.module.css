@@ -1,0 +1,45 @@
+/* ConnectionStatus styles */
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ── State-specific dot colors ─────────────────── */
+
+.idle {
+  background-color: var(--color-text-dim);
+}
+
+.connected {
+  background-color: var(--color-status-connected);
+}
+
+.connecting,
+.reconnecting {
+  background-color: var(--color-status-connecting);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.disconnected {
+  background-color: var(--color-status-disconnected);
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

@@ -50,12 +50,6 @@
   border-radius: 50%;
   background-color: var(--color-status-disconnected);
 }
-
-.statusText {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
 .toggleBtn {
   font-family: var(--font-sans);
   font-size: 12px;
@@ -167,4 +161,46 @@
   font-size: 13px;
   text-align: center;
   padding-top: var(--space-xl);
+}
+
+/* ── Debug log (temporary, replaced in Milestone 8) */
+
+.debugLog {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.debugEntry {
+  display: flex;
+  gap: var(--space-sm);
+  padding: 2px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.debugSeq {
+  color: var(--color-text-dim);
+  min-width: 30px;
+}
+
+.debugType {
+  color: var(--color-accent-blue);
+  min-width: 100px;
+}
+
+.debugText {
+  color: var(--color-text-muted);
+  white-space: pre;
+}
+
+/* ── Streamed text (temporary, replaced in Milestone 6) */
+
+.chatMessages {
+  padding: var(--space-md);
+}
+
+.streamText {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }

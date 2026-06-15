@@ -12,17 +12,75 @@
  * └──────────┴──────────────────────┴────────────────────┘
  *
  * Why "use client"?
- * - Panel visibility is interactive state (toggle buttons)
- * - Child components will use hooks for WebSocket, state, etc.
- * - Server components can't hold useState
+ * - Manages WebSocket connection (browser API)
+ * - Holds interactive state (panel toggles, connection status)
+ * - Server components can't use hooks
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { WSClient, type ConnectionState } from "@/lib/protocol/ws-client";
+import type { ServerMessage } from "@/lib/protocol/types";
+import ConnectionStatus from "./ConnectionStatus";
 import styles from "./AppShell.module.css";
+
+/** The agent server WebSocket URL */
+const WS_URL = "ws://localhost:4747/ws";
 
 export default function AppShell() {
   const [showTimeline, setShowTimeline] = useState(true);
   const [showContext, setShowContext] = useState(true);
+  const [connectionState, setConnectionState] = useState<ConnectionState>("IDLE");
+  const [messages, setMessages] = useState<ServerMessage[]>([]);
+
+  // useRef to hold the WSClient instance across renders.
+  // We don't want React to recreate it on every render.
+  const clientRef = useRef<WSClient | null>(null);
+
+  // ── Message handler (useCallback so ref is stable) ────
+  const handleMessage = useCallback((msg: ServerMessage) => {
+    // For now, just collect all messages for debugging.
+    // Milestone 5 will replace this with a proper reducer.
+    setMessages((prev) => [...prev, msg]);
+  }, []);
+
+  // ── Initialize WSClient on mount ──────────────────────
+  useEffect(() => {
+    const client = new WSClient({
+      url: WS_URL,
+      onMessage: handleMessage,
+      onStateChange: setConnectionState,
+    });
+
+    clientRef.current = client;
+    client.connect();
+
+    // Cleanup on unmount
+    return () => {
+      client.disconnect();
+      clientRef.current = null;
+    };
+  }, [handleMessage]);
+
+  // ── Send message handler ──────────────────────────────
+  const handleSendMessage = (content: string) => {
+    if (!clientRef.current) return;
+    clientRef.current.sendUserMessage(content);
+    setMessages([]); // Clear previous messages for new turn
+  };
+
+  // ── Input submit handler ──────────────────────────────
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const input = e.currentTarget;
+      const content = input.value.trim();
+      if (content) {
+        handleSendMessage(content);
+        input.value = "";
+      }
+    }
+  };
+
+  const isConnected = connectionState === "CONNECTED";
 
   return (
     <div className={styles.shell}>
@@ -30,8 +88,7 @@ export default function AppShell() {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>Agent Console</h1>
-          <span className={styles.statusDot} title="Disconnected" />
-          <span className={styles.statusText}>Disconnected</span>
+          <ConnectionStatus state={connectionState} />
         </div>
         <div className={styles.headerRight}>
           <button
@@ -58,7 +115,21 @@ export default function AppShell() {
           <aside className={styles.timeline}>
             <div className={styles.panelHeader}>Trace Timeline</div>
             <div className={styles.panelBody}>
-              <p className={styles.placeholder}>Events will appear here during streaming</p>
+              {messages.length === 0 ? (
+                <p className={styles.placeholder}>Events will appear here during streaming</p>
+              ) : (
+                <div className={styles.debugLog}>
+                  {messages.map((msg, i) => (
+                    <div key={i} className={styles.debugEntry}>
+                      <span className={styles.debugSeq}>#{msg.seq}</span>
+                      <span className={styles.debugType}>{msg.type}</span>
+                      {msg.type === "TOKEN" && (
+                        <span className={styles.debugText}>{msg.text}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </aside>
         )}
@@ -66,14 +137,27 @@ export default function AppShell() {
         {/* Chat (center) */}
         <section className={styles.chat}>
           <div className={styles.panelBody}>
-            <p className={styles.placeholder}>Send a message to start</p>
+            {messages.length === 0 ? (
+              <p className={styles.placeholder}>Send a message to start</p>
+            ) : (
+              <div className={styles.chatMessages}>
+                {/* Temporary: show concatenated token text */}
+                <p className={styles.streamText}>
+                  {messages
+                    .filter((m) => m.type === "TOKEN")
+                    .map((m) => (m.type === "TOKEN" ? m.text : ""))
+                    .join("")}
+                </p>
+              </div>
+            )}
           </div>
           <div className={styles.inputArea}>
             <input
               type="text"
               className={styles.input}
               placeholder='Try "hello" or "summarize the report"...'
-              disabled
+              onKeyDown={handleKeyDown}
+              disabled={!isConnected}
             />
           </div>
         </section>
