@@ -1,0 +1,96 @@
+/* TimelineFilter styles */
+
+.filterBar {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-panel);
+  flex-shrink: 0;
+}
+
+.filterTop {
+  display: flex;
+  gap: 4px;
+}
+
+.search {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search::placeholder {
+  color: var(--color-text-dim);
+}
+
+.search:focus {
+  border-color: var(--color-border-focus);
+}
+
+.filterToggle {
+  font-size: 11px;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.filterToggle:hover {
+  background-color: var(--color-bg-hover);
+}
+
+/* ── Filter chips ─────────────────────────────── */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.chip {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.chip:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-muted);
+}
+
+.chipActive {
+  background-color: hsl(0 0% 100% / 0.04);
+}
+
+.allChip {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.chipCount {
+  font-size: 9px;
+  background-color: hsl(0 0% 100% / 0.08);
+  padding: 0 4px;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,31 @@
+/* TraceTimeline styles */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.empty {
+  color: var(--color-text-dim);
+  font-size: 12px;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.footer {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-dim);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}

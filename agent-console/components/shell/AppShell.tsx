@@ -15,15 +15,23 @@
  * - AppShell wraps everything in <AgentProvider>
  * - <AppShellInner> uses useAgent() to access connection state
  * - <ChatPanel> uses useAgent() for stream state + actions
+ * - <TraceTimeline> gets entries from state + filter from local state
  *
- * This split is needed because useAgent() can only be called
- * INSIDE the AgentProvider, not in the component that renders it.
+ * BIDIRECTIONAL LINKING:
+ * - Click a timeline row → scrolls chat to that tool card (by call_id)
+ * - Click a tool card in chat → could highlight timeline row (future)
+ * - Both use data-call-id attributes on DOM elements
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { AgentProvider, useAgent } from "@/lib/agent/context";
 import ConnectionStatus from "./ConnectionStatus";
 import ChatPanel from "../chat/ChatPanel";
+import TraceTimeline, {
+  createDefaultFilter,
+  type FilterState,
+} from "../timeline/TraceTimeline";
+import type { TimelineEntry } from "@/lib/agent/types";
 import styles from "./AppShell.module.css";
 
 /** The agent server WebSocket URL */
@@ -39,12 +47,35 @@ export default function AppShell() {
 
 /**
  * Inner shell — lives inside AgentProvider so it can use useAgent().
- * Owns panel visibility toggles and layout structure.
+ * Owns panel visibility toggles, timeline filter, and layout structure.
  */
 function AppShellInner() {
   const { state, connectionState } = useAgent();
   const [showTimeline, setShowTimeline] = useState(true);
   const [showContext, setShowContext] = useState(true);
+  const [timelineFilter, setTimelineFilter] = useState<FilterState>(
+    createDefaultFilter
+  );
+  const [selectedSeq, setSelectedSeq] = useState<number | null>(null);
+
+  // ── Bidirectional linking: timeline → chat ──────────
+  const handleTimelineSelect = useCallback((entry: TimelineEntry) => {
+    setSelectedSeq(entry.seq);
+
+    // If this entry has a callId, try to scroll the chat panel
+    // to the matching ToolCard (which has data-call-id attribute)
+    if (entry.callId) {
+      const el = document.querySelector(
+        `[data-call-id="${entry.callId}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Flash highlight
+        el.classList.add("timeline-highlight");
+        setTimeout(() => el.classList.remove("timeline-highlight"), 1500);
+      }
+    }
+  }, []);
 
   return (
     <div className={styles.shell}>
@@ -74,27 +105,16 @@ function AppShellInner() {
 
       {/* ── Main panels ────────────────────────────── */}
       <main className={styles.main}>
-        {/* Timeline (left) */}
+        {/* Timeline (left) — now the real TraceTimeline */}
         {showTimeline && (
           <aside className={styles.timeline}>
-            <div className={styles.panelHeader}>Trace Timeline</div>
-            <div className={styles.panelBody}>
-              {state.timeline.length === 0 ? (
-                <p className={styles.placeholder}>
-                  Events will appear here during streaming
-                </p>
-              ) : (
-                <div className={styles.debugLog}>
-                  {state.timeline.map((entry, i) => (
-                    <div key={i} className={styles.debugEntry}>
-                      <span className={styles.debugSeq}>#{entry.seq}</span>
-                      <span className={styles.debugType}>{entry.type}</span>
-                      <span className={styles.debugText}>{entry.summary}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <TraceTimeline
+              entries={state.timeline}
+              filter={timelineFilter}
+              onFilterChange={setTimelineFilter}
+              onSelectEntry={handleTimelineSelect}
+              selectedSeq={selectedSeq}
+            />
           </aside>
         )}
 

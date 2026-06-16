@@ -88,3 +88,22 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-focus);
 }
+
+/* ── Bidirectional linking highlight ───────────── */
+/* Applied temporarily when clicking a timeline row
+   to flash the corresponding chat element */
+
+.timeline-highlight {
+  animation: timeline-flash 1.5s ease-out;
+}
+
+@keyframes timeline-flash {
+  0% {
+    box-shadow: 0 0 0 2px var(--color-accent-blue),
+                0 0 12px 2px hsl(220 80% 50% / 0.3);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
