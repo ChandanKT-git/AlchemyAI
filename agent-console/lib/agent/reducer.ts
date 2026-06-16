@@ -40,6 +40,7 @@ export function createInitialState(): AgentState {
     context: { contexts: {} },
     timeline: [],
     lastError: null,
+    pendingAcks: [],
   };
 }
 
@@ -84,7 +85,7 @@ export function agentReducer(
         msg.tool_name,
         msg.args,
         msg.stream_id
-      );
+      );  // Also queues the call_id in pendingAcks
 
     case "TOOL_RESULT":
       return handleToolResult(withTimeline, msg.call_id, msg.result);
@@ -165,6 +166,24 @@ function handleToolCall(
   args: Record<string, unknown>,
   streamId: string
 ): AgentState {
+  // ── DEDUP CHECK ──────────────────────────────────────
+  // On reconnect, the server replays events including TOOL_CALL.
+  // If we already have a ToolCallBlock with this callId,
+  // DON'T create a second card — but DO queue the ACK again
+  // (the server needs it for the new connection).
+  const alreadyExists = state.stream.blocks.some(
+    (b) => b.kind === "tool_call" && b.callId === callId
+  );
+
+  if (alreadyExists) {
+    // Card exists — just re-queue the ACK
+    return {
+      ...state,
+      pendingAcks: [...state.pendingAcks, callId],
+    };
+  }
+
+  // ── NORMAL PATH ──────────────────────────────────────
   const blocks = [...state.stream.blocks];
 
   // If there are no blocks yet (tool call before any tokens),
@@ -186,6 +205,8 @@ function handleToolCall(
       status: "tool_pending",
       blocks,
     },
+    // Queue TOOL_ACK — the provider will send it
+    pendingAcks: [...state.pendingAcks, callId],
   };
 }
 
@@ -263,7 +284,18 @@ export function resetForNewTurn(state: AgentState): AgentState {
     stream: createInitialStreamState(),
     timeline: [],
     lastError: null,
+    pendingAcks: [],
   };
+}
+
+/**
+ * Clear the pendingAcks queue after the provider has sent them.
+ * This is called by the context provider after it sends TOOL_ACK
+ * messages over the WebSocket.
+ */
+export function clearPendingAcks(state: AgentState): AgentState {
+  if (state.pendingAcks.length === 0) return state;
+  return { ...state, pendingAcks: [] };
 }
 
 // ── Factory functions ────────────────────────────────────────

@@ -35,6 +35,7 @@ import {
   agentReducer,
   createInitialState,
   resetForNewTurn,
+  clearPendingAcks,
 } from "@/lib/agent/reducer";
 import type { ServerMessage } from "@/lib/protocol/types";
 
@@ -98,6 +99,29 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
       clientRef.current = null;
     };
   }, [url, handleMessage]);
+
+  // ── Send TOOL_ACKs when the reducer queues them ──────
+  // This useEffect fires after the reducer adds call_ids
+  // to pendingAcks. We send TOOL_ACK for each, then clear.
+  //
+  // WHY useEffect and not in handleMessage?
+  // The reducer is pure — it can't do side effects.
+  // useEffect runs AFTER React commits the state update,
+  // which means the tool card is already in the DOM when
+  // we send ACK. This matches the protocol requirement:
+  // "ACK means I've processed and rendered this tool call."
+  useEffect(() => {
+    if (agentState.pendingAcks.length === 0) return;
+    if (!clientRef.current) return;
+
+    for (const callId of agentState.pendingAcks) {
+      console.log(`[AgentProvider] Sending TOOL_ACK for ${callId}`);
+      clientRef.current.send({ type: "TOOL_ACK", call_id: callId });
+    }
+
+    // Clear the queue so we don't send again
+    setAgentState((prev) => clearPendingAcks(prev));
+  }, [agentState.pendingAcks]);
 
   // ── Actions ─────────────────────────────────────────
 

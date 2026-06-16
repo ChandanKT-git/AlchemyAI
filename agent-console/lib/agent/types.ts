@@ -107,4 +107,18 @@ export interface AgentState {
 
   /** The last error received, if any */
   lastError: { code: string; message: string } | null;
+
+  /**
+   * call_ids that need a TOOL_ACK sent to the server.
+   *
+   * WHY HERE?
+   * The reducer is a PURE function — it can't do side effects
+   * like WebSocket sends. Instead, it queues call_ids here.
+   * The context provider watches this array and sends TOOL_ACK
+   * for each entry, then clears it.
+   *
+   * This is the "command pattern" — the reducer produces commands,
+   * the provider executes them.
+   */
+  pendingAcks: string[];
 }

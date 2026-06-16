@@ -8,15 +8,16 @@
 //
 // This component maps each block to a visual element:
 //   - TextBlock → <p> with streamed text
-//   - ToolCallBlock → structural card with tool name, args, result
+//   - ToolCallBlock → <ToolCard> (dedicated component)
 //
 // PERFORMANCE: TextBlock content changes on every token (~30ms).
-// ToolCallBlocks are memoized because they only change once
+// ToolCards are memoized because they only change once
 // (when the result arrives). Completed blocks are fully static.
 // ─────────────────────────────────────────────────────────────
 
 import React from "react";
 import type { Block, StreamStatus } from "@/lib/agent/types";
+import ToolCard from "./ToolCard";
 import styles from "./StreamMessage.module.css";
 
 interface StreamMessageProps {
@@ -50,7 +51,7 @@ function StreamMessage({ blocks, status }: StreamMessageProps) {
         }
 
         if (block.kind === "tool_call") {
-          return <ToolCallCard key={block.callId} block={block} />;
+          return <ToolCard key={block.callId} block={block} />;
         }
 
         return null;
@@ -58,47 +59,5 @@ function StreamMessage({ blocks, status }: StreamMessageProps) {
     </div>
   );
 }
-
-// ── ToolCallCard (memoized — only re-renders when result arrives) ──
-
-interface ToolCallCardProps {
-  block: Extract<Block, { kind: "tool_call" }>;
-}
-
-const ToolCallCard = React.memo(function ToolCallCard({
-  block,
-}: ToolCallCardProps) {
-  const isPending = block.status === "pending";
-
-  return (
-    <div className={`${styles.toolCard} ${isPending ? styles.pending : styles.complete}`}>
-      <div className={styles.toolHeader}>
-        <span className={styles.toolIcon}>{isPending ? "⏳" : "✅"}</span>
-        <span className={styles.toolName}>{block.toolName}</span>
-        <span className={styles.toolStatus}>
-          {isPending ? "Executing..." : "Complete"}
-        </span>
-      </div>
-
-      {/* Arguments */}
-      <div className={styles.toolSection}>
-        <span className={styles.toolLabel}>Args</span>
-        <pre className={styles.toolCode}>
-          {JSON.stringify(block.args, null, 2)}
-        </pre>
-      </div>
-
-      {/* Result (only when complete) */}
-      {block.result && (
-        <div className={styles.toolSection}>
-          <span className={styles.toolLabel}>Result</span>
-          <pre className={styles.toolCode}>
-            {JSON.stringify(block.result, null, 2)}
-          </pre>
-        </div>
-      )}
-    </div>
-  );
-});
 
 export default React.memo(StreamMessage);

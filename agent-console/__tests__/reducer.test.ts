@@ -15,6 +15,7 @@ import {
   agentReducer,
   createInitialState,
   resetForNewTurn,
+  clearPendingAcks,
 } from "@/lib/agent/reducer";
 import type { AgentState } from "@/lib/agent/types";
 import type { ServerMessage } from "@/lib/protocol/types";
@@ -481,5 +482,106 @@ describe("agentReducer — full integration", () => {
 
     // Timeline has 13 entries
     expect(state.timeline).toHaveLength(13);
+  });
+});
+
+// ── pendingAcks — TOOL_ACK queueing ─────────────────────────
+
+describe("agentReducer — pendingAcks", () => {
+  test("initial state has empty pendingAcks", () => {
+    const state = createInitialState();
+    expect(state.pendingAcks).toEqual([]);
+  });
+
+  test("TOOL_CALL queues callId in pendingAcks", () => {
+    const state = applyAll([
+      toolCall(1, "tc_001", "lookup_metric"),
+    ]);
+
+    expect(state.pendingAcks).toContain("tc_001");
+  });
+
+  test("multiple TOOL_CALLs queue all callIds", () => {
+    const state = applyAll([
+      toolCall(1, "tc_001", "tool_a"),
+      toolCall(2, "tc_002", "tool_b"),
+    ]);
+
+    expect(state.pendingAcks).toContain("tc_001");
+    expect(state.pendingAcks).toContain("tc_002");
+  });
+
+  test("clearPendingAcks empties the queue", () => {
+    let state = applyAll([
+      toolCall(1, "tc_001", "lookup"),
+    ]);
+    expect(state.pendingAcks).toHaveLength(1);
+
+    state = clearPendingAcks(state);
+    expect(state.pendingAcks).toHaveLength(0);
+  });
+
+  test("clearPendingAcks is a no-op if queue is already empty", () => {
+    const state = createInitialState();
+    const result = clearPendingAcks(state);
+    expect(result).toBe(state); // same reference (no unnecessary re-render)
+  });
+
+  test("resetForNewTurn clears pendingAcks", () => {
+    let state = applyAll([
+      toolCall(1, "tc_001", "lookup"),
+    ]);
+    expect(state.pendingAcks).toHaveLength(1);
+
+    state = resetForNewTurn(state);
+    expect(state.pendingAcks).toHaveLength(0);
+  });
+});
+
+// ── TOOL_CALL dedup (reconnection replay) ────────────────────
+
+describe("agentReducer — TOOL_CALL dedup", () => {
+  test("duplicate TOOL_CALL (same callId) does not create second block", () => {
+    const state = applyAll([
+      token(1, "Before."),
+      toolCall(2, "tc_001", "lookup"),
+      // Simulate reconnect replay — same TOOL_CALL arrives again
+      toolCall(2, "tc_001", "lookup"),
+    ]);
+
+    // Should still have only 3 blocks: Text, ToolCall, Text
+    // NOT 5 blocks (Text, ToolCall, Text, ToolCall, Text)
+    const toolBlocks = state.stream.blocks.filter(
+      (b) => b.kind === "tool_call"
+    );
+    expect(toolBlocks).toHaveLength(1);
+  });
+
+  test("duplicate TOOL_CALL re-queues ACK (server needs it for new connection)", () => {
+    let state = applyAll([
+      toolCall(1, "tc_001", "lookup"),
+    ]);
+
+    // Clear the first ACK (as if the provider sent it)
+    state = clearPendingAcks(state);
+    expect(state.pendingAcks).toHaveLength(0);
+
+    // Simulate reconnect replay — same TOOL_CALL arrives again
+    state = agentReducer(state, toolCall(1, "tc_001", "lookup"));
+
+    // ACK is queued again for the new connection
+    expect(state.pendingAcks).toContain("tc_001");
+  });
+
+  test("different callIds are NOT deduped", () => {
+    const state = applyAll([
+      toolCall(1, "tc_001", "tool_a"),
+      toolCall(2, "tc_002", "tool_b"),
+    ]);
+
+    const toolBlocks = state.stream.blocks.filter(
+      (b) => b.kind === "tool_call"
+    );
+    expect(toolBlocks).toHaveLength(2);
   });
 });
