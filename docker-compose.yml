@@ -1,0 +1,19 @@
+services:
+  agent-server:
+    image: agent-server          # pre-built: docker build -t agent-server ./agent-server
+    ports:
+      - "4747:4747"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4747/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  agent-console:
+    build:
+      context: ./agent-console
+    ports:
+      - "3000:3000"
+    depends_on:
+      agent-server:
+        condition: service_healthy
