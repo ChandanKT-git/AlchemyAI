@@ -1,0 +1,103 @@
+/* ContextPanel — container layout for the context inspector */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Panel header ───────────────────────────────── */
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  gap: var(--space-sm);
+}
+
+.title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.contextId {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent-purple);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* ── Tab bar ────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  flex-shrink: 0;
+}
+
+.tab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.tab:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.tab.tabActive {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  border-color: var(--color-accent-purple);
+}
+
+/* ── Tree area ──────────────────────────────────── */
+
+.treeArea {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Wrapper for JsonTree (pure view, no diff) */
+.treeWrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+
+/* ── Empty state ────────────────────────────────── */
+
+.empty {
+  color: var(--color-text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+}

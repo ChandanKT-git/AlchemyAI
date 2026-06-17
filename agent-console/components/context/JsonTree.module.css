@@ -1,0 +1,137 @@
+/* JsonTree — recursive tree viewer with syntax highlighting */
+
+/* ── Node wrapper ───────────────────────────────── */
+
+.node {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* ── Expand/collapse toggle ─────────────────────── */
+
+.toggle {
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--color-text-dim);
+  font-size: 10px;
+  line-height: 1;
+  vertical-align: middle;
+  transition: color 0.1s;
+}
+
+.toggle:hover {
+  color: var(--color-text-muted);
+}
+
+.arrow {
+  display: inline-block;
+  width: 10px;
+  text-align: center;
+  user-select: none;
+}
+
+/* ── Change bubble-up dot ───────────────────────── */
+
+.changeDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent-orange);
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+/* ── Expanded subtree ───────────────────────────── */
+
+.subtree {
+  display: inline;
+}
+
+.bracket {
+  color: var(--color-text-muted);
+}
+
+.children {
+  display: block;
+  padding-left: 16px;
+  border-left: 1px solid var(--color-border);
+}
+
+.entry {
+  display: block;
+  position: relative;
+}
+
+.key {
+  display: inline;
+}
+
+.keyName {
+  color: var(--color-accent-purple);
+}
+
+.colon {
+  color: var(--color-text-dim);
+}
+
+.comma {
+  color: var(--color-text-dim);
+}
+
+/* ── Collapsed summary ──────────────────────────── */
+
+.collapsed {
+  display: inline;
+}
+
+.ellipsis {
+  color: var(--color-text-dim);
+  font-style: italic;
+  padding: 0 4px;
+}
+
+/* ── Syntax highlighting ────────────────────────── */
+
+.string {
+  color: #4ec9b0; /* teal — string values */
+}
+
+.number {
+  color: var(--color-accent-blue);
+}
+
+.boolean {
+  color: var(--color-accent-orange);
+}
+
+.null {
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+/* ── Diff highlights ────────────────────────────── */
+
+.added {
+  background-color: hsl(142 60% 40% / 0.18);
+  border-radius: 2px;
+  outline: 1px solid hsl(142 60% 40% / 0.3);
+}
+
+.added .keyName {
+  color: var(--color-accent-green);
+}
+
+.changed {
+  background-color: hsl(38 90% 50% / 0.15);
+  border-radius: 2px;
+  outline: 1px solid hsl(38 90% 50% / 0.25);
+}
+
+.changed .keyName {
+  color: var(--color-accent-orange);
+}

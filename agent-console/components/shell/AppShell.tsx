@@ -31,6 +31,7 @@ import TraceTimeline, {
   createDefaultFilter,
   type FilterState,
 } from "../timeline/TraceTimeline";
+import ContextPanel from "../context/ContextPanel";
 import type { TimelineEntry } from "@/lib/agent/types";
 import styles from "./AppShell.module.css";
 
@@ -53,9 +54,8 @@ function AppShellInner() {
   const { state, connectionState } = useAgent();
   const [showTimeline, setShowTimeline] = useState(true);
   const [showContext, setShowContext] = useState(true);
-  const [timelineFilter, setTimelineFilter] = useState<FilterState>(
-    createDefaultFilter
-  );
+  const [timelineFilter, setTimelineFilter] =
+    useState<FilterState>(createDefaultFilter);
   const [selectedSeq, setSelectedSeq] = useState<number | null>(null);
 
   // ── Bidirectional linking: timeline → chat ──────────
@@ -65,9 +65,7 @@ function AppShellInner() {
     // If this entry has a callId, try to scroll the chat panel
     // to the matching ToolCard (which has data-call-id attribute)
     if (entry.callId) {
-      const el = document.querySelector(
-        `[data-call-id="${entry.callId}"]`
-      );
+      const el = document.querySelector(`[data-call-id="${entry.callId}"]`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         // Flash highlight
@@ -121,39 +119,10 @@ function AppShellInner() {
         {/* Chat (center) — uses useAgent internally */}
         <ChatPanel />
 
-        {/* Context Inspector (right) */}
+        {/* Context Inspector (right) — full Milestone 9 panel */}
         {showContext && (
           <aside className={styles.context}>
-            <div className={styles.panelHeader}>Context Inspector</div>
-            <div className={styles.panelBody}>
-              {Object.keys(state.context.contexts).length === 0 ? (
-                <p className={styles.placeholder}>
-                  Context snapshots will appear here
-                </p>
-              ) : (
-                <div className={styles.debugLog}>
-                  {Object.entries(state.context.contexts).map(
-                    ([id, snapshots]) => (
-                      <div key={id} className={styles.contextEntry}>
-                        <div className={styles.contextId}>{id}</div>
-                        <pre className={styles.contextData}>
-                          {JSON.stringify(
-                            snapshots[snapshots.length - 1].data,
-                            null,
-                            2
-                          )}
-                        </pre>
-                        {snapshots.length > 1 && (
-                          <span className={styles.contextHistory}>
-                            {snapshots.length} snapshots
-                          </span>
-                        )}
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
+            <ContextPanel context={state.context} />
           </aside>
         )}
       </main>

@@ -1,0 +1,55 @@
+/* SnapshotHistory — compact scrubber bar */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  flex-shrink: 0;
+}
+
+.btn {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.1s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-focus);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text);
+  min-width: 36px;
+  text-align: center;
+}
+
+.badge {
+  font-size: 10px;
+  color: var(--color-accent-green);
+  margin-left: var(--space-xs);
+}
+
+.outdated {
+  font-size: 10px;
+  color: var(--color-accent-orange);
+  margin-left: var(--space-xs);
+}

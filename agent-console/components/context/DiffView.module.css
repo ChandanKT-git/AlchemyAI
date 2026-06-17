@@ -1,0 +1,196 @@
+/* DiffView — merged prev/next tree with diff highlights */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Summary badge bar ──────────────────────────── */
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 28px;
+}
+
+.badgeAdded {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent-green);
+  background-color: hsl(142 60% 40% / 0.12);
+  border: 1px solid hsl(142 60% 40% / 0.25);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+.badgeRemoved {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent-red);
+  background-color: hsl(0 72% 50% / 0.12);
+  border: 1px solid hsl(0 72% 50% / 0.25);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+.badgeChanged {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent-orange);
+  background-color: hsl(38 90% 50% / 0.12);
+  border: 1px solid hsl(38 90% 50% / 0.25);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+.noChanges {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+/* ── Tree area ──────────────────────────────────── */
+
+.tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ── Toggle button ──────────────────────────────── */
+
+.toggle {
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--color-text-dim);
+  font-size: 10px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.toggle:hover {
+  color: var(--color-text-muted);
+}
+
+.arrow {
+  display: inline-block;
+  width: 10px;
+  text-align: center;
+  user-select: none;
+}
+
+/* ── Bubble-up change indicator ─────────────────── */
+
+.changeDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent-orange);
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+/* ── Tree structure ─────────────────────────────── */
+
+.subtree {
+  display: inline;
+}
+
+.bracket {
+  color: var(--color-text-muted);
+}
+
+.children {
+  display: block;
+  padding-left: 16px;
+  border-left: 1px solid var(--color-border);
+}
+
+.entry {
+  display: block;
+}
+
+.key {
+  display: inline;
+}
+
+.keyName {
+  color: var(--color-accent-purple);
+}
+
+.colon {
+  color: var(--color-text-dim);
+}
+
+.comma {
+  color: var(--color-text-dim);
+}
+
+.collapsed {
+  display: inline;
+}
+
+.ellipsis {
+  color: var(--color-text-dim);
+  font-style: italic;
+  padding: 0 4px;
+}
+
+/* ── Diff highlighting ──────────────────────────── */
+
+/* Added node — green background */
+.added {
+  background-color: hsl(142 60% 40% / 0.18);
+  border-radius: 2px;
+  outline: 1px solid hsl(142 60% 40% / 0.3);
+  color: var(--color-text);
+}
+
+/* Removed node — red background + strikethrough */
+.removed {
+  background-color: hsl(0 72% 50% / 0.15);
+  border-radius: 2px;
+  outline: 1px solid hsl(0 72% 50% / 0.25);
+  color: var(--color-accent-red);
+  opacity: 0.75;
+}
+
+/* Changed value — yellow/orange background */
+.changed {
+  background-color: hsl(38 90% 50% / 0.12);
+  border-radius: 2px;
+}
+
+/* Old value in a changed node (before the arrow) */
+.oldVal {
+  color: var(--color-accent-red);
+  opacity: 0.8;
+}
+
+.arrow {
+  color: var(--color-text-dim);
+  font-size: 10px;
+}
+
+/* Key color overrides for added/removed key labels */
+.keyAdded .keyName {
+  color: var(--color-accent-green);
+}
+
+.keyRemoved .keyName {
+  color: var(--color-accent-red);
+  text-decoration: line-through;
+  opacity: 0.75;
+}
