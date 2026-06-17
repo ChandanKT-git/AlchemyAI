@@ -59,7 +59,7 @@ On TOOL_RESULT: update exactly the matching ToolCallBlock by `call_id`.
 
 **Why this eliminates layout shift:** React re-renders only the block that actually changed. A new TOKEN updates only the last `TextBlock` component (memoized via `React.memo`). A TOOL_RESULT update re-renders only one `ToolCard`. No other DOM nodes are touched.
 
-**Why the reducer, not `useState`?** A TOOL_CALL requires three simultaneous state changes: freeze current text, push tool card, push new empty text. With scattered `useState` calls, React would render an intermediate inconsistent state between each `set*` call. The reducer does all three atomically — React sees one state transition.
+**Why a single reducer function instead of scattered `useState` hooks?** A TOOL_CALL requires three simultaneous state changes: freeze current text, push tool card, push new empty text. With scattered atomic `useState` calls (e.g. `setTokens`, `setToolCalls`), React would render an intermediate inconsistent state between each call. The `agentReducer` handles all three atomically — allowing the `AgentProvider` to perform one `setAgentState(prev => agentReducer(prev, msg))` call so React sees exactly one state transition.
 
 ---
 

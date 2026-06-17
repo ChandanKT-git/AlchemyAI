@@ -21,8 +21,10 @@ stateDiagram-v2
     [*] --> IDLE
     IDLE --> CONNECTING: connect()
     CONNECTING --> CONNECTED: onopen (first time)
+    CONNECTING --> DISCONNECTED: onclose / onerror
     CONNECTED --> DISCONNECTED: onclose / onerror
-    DISCONNECTED --> RECONNECTING: backoff timer fires
+    DISCONNECTED --> CONNECTING: backoff timer fires\n(never connected before)
+    DISCONNECTED --> RECONNECTING: backoff timer fires\n(had connected before)
     RECONNECTING --> CONNECTED: onopen (sends RESUME)
     RECONNECTING --> DISCONNECTED: onclose / onerror
 ```
