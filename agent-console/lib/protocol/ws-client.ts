@@ -84,6 +84,21 @@ export interface WSClientOptions {
    * Cleared (set to null implicitly) when state leaves DISCONNECTED.
    */
   onRetryScheduled?: (info: ReconnectInfo) => void;
+
+  /**
+   * Called after a successful RECONNECTION (not the first connection).
+   * Fired after RESUME is sent and state is CONNECTED.
+   * Use this to re-queue any side effects that may have been lost
+   * during the outage (e.g. TOOL_ACKs that never reached the server).
+   */
+  onReconnected?: () => void;
+
+  /**
+   * Called after every message insertion into the reorder buffer.
+   * Delivers the current number of messages waiting for gap fill.
+   * Use this to display buffer depth during chaos recording.
+   */
+  onBufferChange?: (bufferedCount: number) => void;
 }
 
 // ── Backoff Constants ────────────────────────────────────────
@@ -201,10 +216,12 @@ export class WSClient {
     this.backoffMs = BACKOFF_INITIAL_MS; // Reset backoff on success
     this.reconnectAttempt = 0; // Reset attempt counter on success
 
-    if (this.hasConnectedBefore) {
-      // ── Reconnection: send RESUME first ──────────────
+    const isReconnect = this.hasConnectedBefore;
+
+    if (isReconnect) {
+      // ── Reconnection: send RESUME first ──────────
       // The server replays all events with seq > last_seq.
-      // The reorder buffer handles deduplication.
+      // The reorder buffer handles deduplication of any replayed events.
       const lastSeq = this.reorderBuffer.getLastProcessedSeq();
       console.log(
         `[WSClient] Reconnected — sending RESUME { last_seq: ${lastSeq} }`,
@@ -214,6 +231,12 @@ export class WSClient {
 
     this.hasConnectedBefore = true;
     this.setState("CONNECTED");
+
+    if (isReconnect) {
+      // Notify the app so it can re-queue any lost side-effects
+      // (e.g. TOOL_ACKs that may not have reached the server before disconnect)
+      this.options.onReconnected?.();
+    }
   }
 
   private handleMessage(event: MessageEvent): void {
@@ -248,6 +271,11 @@ export class WSClient {
     for (const orderedMsg of ready) {
       this.options.onMessage(orderedMsg);
     }
+
+    // ── Step 5: Notify buffer depth change ───────────
+    // Called after every insert so the UI can show real-time
+    // buffer depth during chaos recording.
+    this.options.onBufferChange?.(this.reorderBuffer.bufferedCount);
   }
 
   private handleDisconnect(): void {

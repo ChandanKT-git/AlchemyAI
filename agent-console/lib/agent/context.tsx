@@ -40,6 +40,7 @@ import {
   createInitialState,
   resetForNewTurn,
   clearPendingAcks,
+  requeuePendingAcks,
 } from "@/lib/agent/reducer";
 import type { ServerMessage } from "@/lib/protocol/types";
 
@@ -57,6 +58,13 @@ interface AgentContextValue {
    * Carries the backoff delay and attempt number for the UI countdown.
    */
   reconnectInfo: ReconnectInfo | null;
+
+  /**
+   * Live stats from the connection layer for the chaos debug overlay.
+   * lastSeq  — last fully processed message sequence number
+   * bufferedCount — messages sitting in the reorder buffer (gap fill)
+   */
+  debugInfo: { lastSeq: number; bufferedCount: number };
 
   /** Send a user message (resets stream for new turn) */
   sendMessage: (content: string) => void;
@@ -83,6 +91,11 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
   const [reconnectInfo, setReconnectInfo] = useState<ReconnectInfo | null>(
     null,
   );
+  const [bufferedCount, setBufferedCount] = useState(0);
+
+  // Stable ref so sendMessage guard never needs to be recreated
+  const connectionStateRef = useRef<ConnectionState>("IDLE");
+  connectionStateRef.current = connectionState;
 
   // Use a ref for the WSClient so it persists across renders
   const clientRef = useRef<WSClient | null>(null);
@@ -113,6 +126,12 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
       onMessage: handleMessage,
       onStateChange: setConnectionState,
       onRetryScheduled: setReconnectInfo,
+      onBufferChange: setBufferedCount,
+      onReconnected: () => {
+        // Re-queue ACKs for any pending tool calls whose TOOL_ACK may
+        // have been lost in transit when the connection dropped.
+        setAgentState((prev) => requeuePendingAcks(prev));
+      },
     });
 
     clientRef.current = client;
@@ -152,12 +171,20 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
   const sendMessage = useCallback((content: string) => {
     if (!clientRef.current) return;
 
+    // Guard: don't wipe stream state if we're not actually connected.
+    // MessageInput already blocks this in the UI, but a defensive check
+    // prevents state loss if called programmatically while reconnecting.
+    if (connectionStateRef.current !== "CONNECTED") {
+      console.warn("[AgentProvider] Ignoring sendMessage — not connected");
+      return;
+    }
+
     // Reset agent state for new turn (preserves context)
     setAgentState((prev) => resetForNewTurn(prev));
 
     // Send via WebSocket (also resets reorder buffer)
     clientRef.current.sendUserMessage(content);
-  }, []);
+  }, []); // stable — reads connectionState via ref
 
   const sendToolAck = useCallback((callId: string) => {
     if (!clientRef.current) return;
@@ -166,10 +193,18 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
 
   // ── Context value (stable reference) ────────────────
 
+  // Derive lastSeq from the timeline (last processed message's seq).
+  // This updates on every reducer dispatch, giving a live seq counter.
+  const lastSeq =
+    agentState.timeline.length > 0
+      ? agentState.timeline[agentState.timeline.length - 1].seq
+      : 0;
+
   const value: AgentContextValue = {
     state: agentState,
     connectionState,
     reconnectInfo,
+    debugInfo: { lastSeq, bufferedCount },
     sendMessage,
     sendToolAck,
   };

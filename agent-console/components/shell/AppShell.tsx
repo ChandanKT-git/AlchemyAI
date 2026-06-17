@@ -51,7 +51,7 @@ export default function AppShell() {
  * Owns panel visibility toggles, timeline filter, and layout structure.
  */
 function AppShellInner() {
-  const { state, connectionState, reconnectInfo } = useAgent();
+  const { state, connectionState, reconnectInfo, debugInfo } = useAgent();
   const [showTimeline, setShowTimeline] = useState(true);
   const [showContext, setShowContext] = useState(true);
   const [timelineFilter, setTimelineFilter] =
@@ -86,6 +86,24 @@ function AppShellInner() {
             reconnectInfo={reconnectInfo}
           />
         </div>
+        {/* ── Debug badges (seq + reorder buffer) ── */}
+        <div className={styles.debugBadges}>
+          <span
+            className={styles.debugBadge}
+            title="Last fully processed message sequence number"
+          >
+            SEQ {debugInfo.lastSeq}
+          </span>
+          <span
+            className={`${styles.debugBadge} ${
+              debugInfo.bufferedCount > 0 ? styles.debugBadgeWarn : ""
+            }`}
+            title="Messages buffered in reorder queue waiting for gap fill"
+          >
+            BUF {debugInfo.bufferedCount}
+          </span>
+        </div>
+
         <div className={styles.headerRight}>
           <button
             className={`${styles.toggleBtn} ${showTimeline ? styles.active : ""}`}

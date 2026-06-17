@@ -1,172 +1,199 @@
 /* ─────────────────────────────────────────────────
    AppShell layout — CSS Module
-   
+
    Why CSS Modules?
    - Scoped class names (no global collisions)
    - Zero-config with Next.js (no Tailwind dependency)
    ───────────────────────────────────────────────── */
 
 .shell {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ── Header ────────────────────────────────────── */
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg-panel);
-  min-height: 48px;
-  flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-panel);
+    min-height: 48px;
+    flex-shrink: 0;
 }
 
 .headerLeft {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
 }
 
 .headerRight {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
 }
 
 .title {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 .statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--color-status-disconnected);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-status-disconnected);
 }
 .toggleBtn {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
 .toggleBtn:hover {
-  background-color: var(--color-bg-hover);
-  color: var(--color-text);
+    background-color: var(--color-bg-hover);
+    color: var(--color-text);
 }
 
 .toggleBtn.active {
-  background-color: var(--color-bg-elevated);
-  color: var(--color-text);
-  border-color: var(--color-border-focus);
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text);
+    border-color: var(--color-border-focus);
+}
+
+/* ── Debug badges (chaos recording overlay) ───── */
+
+.debugBadges {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+    margin-left: auto;
+    margin-right: var(--space-sm);
+}
+
+.debugBadge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 1px 6px;
+    white-space: nowrap;
+    transition:
+        color 0.15s,
+        border-color 0.15s;
+}
+
+/* BUF badge turns orange when the reorder buffer is non-empty */
+.debugBadgeWarn {
+    color: var(--color-accent-orange);
+    border-color: var(--color-accent-orange);
 }
 
 /* ── Main 3-panel layout ───────────────────────── */
 
 .main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+    display: flex;
+    flex: 1;
+    overflow: hidden;
 }
 
 /* ── Side panels ───────────────────────────────── */
 
 .timeline,
 .context {
-  width: 300px;
-  min-width: 240px;
-  border-right: 1px solid var(--color-border);
-  background-color: var(--color-bg-panel);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
+    width: 300px;
+    min-width: 240px;
+    border-right: 1px solid var(--color-border);
+    background-color: var(--color-bg-panel);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
 }
 
 .context {
-  border-right: none;
-  border-left: 1px solid var(--color-border);
+    border-right: none;
+    border-left: 1px solid var(--color-border);
 }
 
 .panelHeader {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
 }
 
 .panelBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-lg);
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
 }
-
-
-
 
 /* ── Placeholder text ──────────────────────────── */
 
 .placeholder {
-  color: var(--color-text-dim);
-  font-size: 13px;
-  text-align: center;
-  padding-top: var(--space-xl);
+    color: var(--color-text-dim);
+    font-size: 13px;
+    text-align: center;
+    padding-top: var(--space-xl);
 }
 
 /* ── Debug log (context inspector — still temporary) ── */
 
 .debugLog {
-  font-family: var(--font-mono);
-  font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
 }
 
 /* ── Context Inspector entries ─────────────────── */
 
 .contextEntry {
-  padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--color-border);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .contextId {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--color-accent-purple);
-  margin-bottom: var(--space-xs);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--color-accent-purple);
+    margin-bottom: var(--space-xs);
 }
 
 .contextData {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--color-text-muted);
-  background-color: var(--color-bg);
-  padding: var(--space-sm);
-  border-radius: var(--radius-sm);
-  overflow-x: auto;
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+    background-color: var(--color-bg);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .contextHistory {
-  display: block;
-  font-size: 10px;
-  color: var(--color-text-dim);
-  margin-top: var(--space-xs);
+    display: block;
+    font-size: 10px;
+    color: var(--color-text-dim);
+    margin-top: var(--space-xs);
 }

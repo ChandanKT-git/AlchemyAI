@@ -63,7 +63,7 @@ function createInitialStreamState(): StreamState {
  */
 export function agentReducer(
   state: AgentState,
-  msg: ServerMessage
+  msg: ServerMessage,
 ): AgentState {
   // Build timeline entry for every message
   const timelineEntry = createTimelineEntry(msg);
@@ -84,8 +84,8 @@ export function agentReducer(
         msg.call_id,
         msg.tool_name,
         msg.args,
-        msg.stream_id
-      );  // Also queues the call_id in pendingAcks
+        msg.stream_id,
+      ); // Also queues the call_id in pendingAcks
 
     case "TOOL_RESULT":
       return handleToolResult(withTimeline, msg.call_id, msg.result);
@@ -98,7 +98,7 @@ export function agentReducer(
         withTimeline,
         msg.context_id,
         msg.data,
-        msg.seq
+        msg.seq,
       );
 
     case "PING":
@@ -122,14 +122,14 @@ export function agentReducer(
 function handleToken(
   state: AgentState,
   text: string,
-  streamId: string
+  streamId: string,
 ): AgentState {
   const stream = state.stream;
 
   // If this is the first token, initialize the stream
   const blocks =
     stream.blocks.length === 0
-      ? [createTextBlock()]  // First token → create initial TextBlock
+      ? [createTextBlock()] // First token → create initial TextBlock
       : [...stream.blocks];
 
   // Append text to the LAST TextBlock
@@ -164,7 +164,7 @@ function handleToolCall(
   callId: string,
   toolName: string,
   args: Record<string, unknown>,
-  streamId: string
+  streamId: string,
 ): AgentState {
   // ── DEDUP CHECK ──────────────────────────────────────
   // On reconnect, the server replays events including TOOL_CALL.
@@ -172,7 +172,7 @@ function handleToolCall(
   // DON'T create a second card — but DO queue the ACK again
   // (the server needs it for the new connection).
   const alreadyExists = state.stream.blocks.some(
-    (b) => b.kind === "tool_call" && b.callId === callId
+    (b) => b.kind === "tool_call" && b.callId === callId,
   );
 
   if (alreadyExists) {
@@ -213,7 +213,7 @@ function handleToolCall(
 function handleToolResult(
   state: AgentState,
   callId: string,
-  result: Record<string, unknown>
+  result: Record<string, unknown>,
 ): AgentState {
   // Find the ToolCallBlock with matching call_id and update it
   const blocks = state.stream.blocks.map((block): Block => {
@@ -229,7 +229,7 @@ function handleToolResult(
 
   // Check if there are still pending tool calls
   const hasPending = blocks.some(
-    (b) => b.kind === "tool_call" && b.status === "pending"
+    (b) => b.kind === "tool_call" && b.status === "pending",
   );
 
   return {
@@ -256,7 +256,7 @@ function handleContextSnapshot(
   state: AgentState,
   contextId: string,
   data: Record<string, unknown>,
-  seq: number
+  seq: number,
 ): AgentState {
   const existing = state.context.contexts[contextId] ?? [];
 
@@ -298,6 +298,30 @@ export function clearPendingAcks(state: AgentState): AgentState {
   return { ...state, pendingAcks: [] };
 }
 
+/**
+ * Re-queue ACKs for all tool calls that are still pending.
+ *
+ * Called on reconnection: if the connection dropped after TOOL_CALL
+ * was processed but before TOOL_ACK reached the server, the server
+ * may be waiting for the ACK. RESUME tells the server we received the
+ * event, but re-queuing the ACK ensures the protocol handshake completes
+ * even if the first ACK was lost in transit.
+ */
+export function requeuePendingAcks(state: AgentState): AgentState {
+  const pendingCallIds = state.stream.blocks
+    .filter(
+      (b): b is ToolCallBlock =>
+        b.kind === "tool_call" && b.status === "pending",
+    )
+    .map((b) => b.callId);
+
+  if (pendingCallIds.length === 0) return state;
+
+  // Merge with any already-queued acks (deduplicated via Set)
+  const merged = [...new Set([...state.pendingAcks, ...pendingCallIds])];
+  return { ...state, pendingAcks: merged };
+}
+
 // ── Factory functions ────────────────────────────────────────
 
 function createTextBlock(): TextBlock {
@@ -307,7 +331,7 @@ function createTextBlock(): TextBlock {
 function createToolCallBlock(
   callId: string,
   toolName: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
 ): ToolCallBlock {
   return {
     kind: "tool_call",
