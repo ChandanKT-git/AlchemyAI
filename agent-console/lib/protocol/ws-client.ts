@@ -29,11 +29,24 @@ import { ReorderBuffer } from "./reorder-buffer";
 // ── Connection States ────────────────────────────────────────
 
 export type ConnectionState =
-  | "IDLE"          // Never connected
-  | "CONNECTING"    // WebSocket opening
-  | "CONNECTED"     // WebSocket open, heartbeat active
-  | "DISCONNECTED"  // WebSocket closed, will retry
+  | "IDLE" // Never connected
+  | "CONNECTING" // WebSocket opening
+  | "CONNECTED" // WebSocket open, heartbeat active
+  | "DISCONNECTED" // WebSocket closed, will retry
   | "RECONNECTING"; // WebSocket opening (has previous history)
+
+// ── Reconnect Info ───────────────────────────────────────────
+
+/**
+ * Emitted by WSClient when a reconnect is scheduled.
+ * The UI uses this to show a countdown and attempt number.
+ */
+export interface ReconnectInfo {
+  /** How long until the next connection attempt (milliseconds) */
+  delayMs: number;
+  /** 1-based reconnection attempt number (resets when connected) */
+  attempt: number;
+}
 
 // ── Configuration ────────────────────────────────────────────
 
@@ -63,6 +76,14 @@ export interface WSClientOptions {
    * Called when a PONG is sent (for timeline logging).
    */
   onPongSent?: (echo: string) => void;
+
+  /**
+   * Called when a reconnect is scheduled (state = DISCONNECTED).
+   * Fired ONCE per retry cycle, before the timer starts.
+   * The UI uses `delayMs` to show a countdown.
+   * Cleared (set to null implicitly) when state leaves DISCONNECTED.
+   */
+  onRetryScheduled?: (info: ReconnectInfo) => void;
 }
 
 // ── Backoff Constants ────────────────────────────────────────
@@ -83,6 +104,7 @@ export class WSClient {
   private hasConnectedBefore = false;
   private backoffMs = BACKOFF_INITIAL_MS;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempt = 0;
 
   // Track if we've been explicitly disconnected by user
   private intentionalDisconnect = false;
@@ -177,13 +199,16 @@ export class WSClient {
 
   private handleOpen(): void {
     this.backoffMs = BACKOFF_INITIAL_MS; // Reset backoff on success
+    this.reconnectAttempt = 0; // Reset attempt counter on success
 
     if (this.hasConnectedBefore) {
       // ── Reconnection: send RESUME first ──────────────
       // The server replays all events with seq > last_seq.
       // The reorder buffer handles deduplication.
       const lastSeq = this.reorderBuffer.getLastProcessedSeq();
-      console.log(`[WSClient] Reconnected — sending RESUME { last_seq: ${lastSeq} }`);
+      console.log(
+        `[WSClient] Reconnected — sending RESUME { last_seq: ${lastSeq} }`,
+      );
       this.send({ type: "RESUME", last_seq: lastSeq });
     }
 
@@ -193,11 +218,15 @@ export class WSClient {
 
   private handleMessage(event: MessageEvent): void {
     // ── Step 1: Parse and validate ─────────────────────
-    const raw = typeof event.data === "string" ? event.data : String(event.data);
+    const raw =
+      typeof event.data === "string" ? event.data : String(event.data);
     const msg = parseRawMessage(raw);
 
     if (!msg) {
-      console.warn("[WSClient] Malformed message, skipping:", raw.slice(0, 100));
+      console.warn(
+        "[WSClient] Malformed message, skipping:",
+        raw.slice(0, 100),
+      );
       return;
     }
 
@@ -237,15 +266,26 @@ export class WSClient {
   private scheduleRetry(): void {
     this.clearRetryTimer();
 
-    console.log(`[WSClient] Reconnecting in ${this.backoffMs}ms...`);
+    this.reconnectAttempt++;
+    const delayMs = this.backoffMs;
+
+    console.log(
+      `[WSClient] Reconnecting in ${delayMs}ms... (attempt ${this.reconnectAttempt})`,
+    );
+
+    // Notify the UI so it can show a countdown
+    this.options.onRetryScheduled?.({
+      delayMs,
+      attempt: this.reconnectAttempt,
+    });
 
     this.retryTimer = setTimeout(() => {
       this.retryTimer = null;
       this.connect();
-    }, this.backoffMs);
+    }, delayMs);
 
     // Exponential backoff: 500 → 1000 → 2000 → 4000 → 8000 → 10000 (cap)
-    this.backoffMs = Math.min(this.backoffMs * BACKOFF_MULTIPLIER, BACKOFF_MAX_MS);
+    this.backoffMs = Math.min(delayMs * BACKOFF_MULTIPLIER, BACKOFF_MAX_MS);
   }
 
   private clearRetryTimer(): void {

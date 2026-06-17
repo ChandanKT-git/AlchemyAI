@@ -51,7 +51,7 @@ export default function AppShell() {
  * Owns panel visibility toggles, timeline filter, and layout structure.
  */
 function AppShellInner() {
-  const { state, connectionState } = useAgent();
+  const { state, connectionState, reconnectInfo } = useAgent();
   const [showTimeline, setShowTimeline] = useState(true);
   const [showContext, setShowContext] = useState(true);
   const [timelineFilter, setTimelineFilter] =
@@ -81,7 +81,10 @@ function AppShellInner() {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>Agent Console</h1>
-          <ConnectionStatus state={connectionState} />
+          <ConnectionStatus
+            state={connectionState}
+            reconnectInfo={reconnectInfo}
+          />
         </div>
         <div className={styles.headerRight}>
           <button

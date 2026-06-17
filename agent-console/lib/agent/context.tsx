@@ -29,7 +29,11 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { WSClient, type ConnectionState } from "@/lib/protocol/ws-client";
+import {
+  WSClient,
+  type ConnectionState,
+  type ReconnectInfo,
+} from "@/lib/protocol/ws-client";
 import type { AgentState } from "@/lib/agent/types";
 import {
   agentReducer,
@@ -47,6 +51,12 @@ interface AgentContextValue {
 
   /** The current WebSocket connection state */
   connectionState: ConnectionState;
+
+  /**
+   * Set when in DISCONNECTED state, null otherwise.
+   * Carries the backoff delay and attempt number for the UI countdown.
+   */
+  reconnectInfo: ReconnectInfo | null;
 
   /** Send a user message (resets stream for new turn) */
   sendMessage: (content: string) => void;
@@ -68,7 +78,11 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
   // We use useState for both agentState and connectionState so
   // React re-renders when they change.
   const [agentState, setAgentState] = useState<AgentState>(createInitialState);
-  const [connectionState, setConnectionState] = useState<ConnectionState>("IDLE");
+  const [connectionState, setConnectionState] =
+    useState<ConnectionState>("IDLE");
+  const [reconnectInfo, setReconnectInfo] = useState<ReconnectInfo | null>(
+    null,
+  );
 
   // Use a ref for the WSClient so it persists across renders
   const clientRef = useRef<WSClient | null>(null);
@@ -83,12 +97,22 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
     setAgentState((prev) => agentReducer(prev, msg));
   }, []);
 
+  // ── Clear reconnectInfo when state leaves DISCONNECTED ─
+  // Once the retry timer fires and we enter RECONNECTING (or we
+  // connect successfully), the countdown is no longer meaningful.
+  useEffect(() => {
+    if (connectionState !== "DISCONNECTED") {
+      setReconnectInfo(null);
+    }
+  }, [connectionState]);
+
   // ── Initialize WSClient on mount ────────────────────
   useEffect(() => {
     const client = new WSClient({
       url,
       onMessage: handleMessage,
       onStateChange: setConnectionState,
+      onRetryScheduled: setReconnectInfo,
     });
 
     clientRef.current = client;
@@ -145,14 +169,13 @@ export function AgentProvider({ url, children }: AgentProviderProps) {
   const value: AgentContextValue = {
     state: agentState,
     connectionState,
+    reconnectInfo,
     sendMessage,
     sendToolAck,
   };
 
   return (
-    <AgentContext.Provider value={value}>
-      {children}
-    </AgentContext.Provider>
+    <AgentContext.Provider value={value}>{children}</AgentContext.Provider>
   );
 }
 
